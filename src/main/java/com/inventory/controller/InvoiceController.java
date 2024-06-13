@@ -2,9 +2,12 @@ package com.inventory.controller;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
+import java.util.TimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -37,52 +40,99 @@ public class InvoiceController {
     @RequestParam(value = "page", defaultValue = "0",required = false)Integer page,
     @RequestParam(value = "size",defaultValue = "5",required = false)Integer size,
     @RequestParam(value = "search",defaultValue = "",required = false)String search,
-    @RequestParam(value = "date",defaultValue = "",required = false)String date) throws ParseException
+    @RequestParam(value = "date",required = false) String date) throws ParseException
     
     {
-       
-         if(search.isEmpty()==false && date.isEmpty()==false){
 
-                System.out.println("SEARCH______________________________-");
 
-          List<InvoiceDto> list=  invoiceService.findByUserIdAndSearchValue(adminId, search, page, size);
-         
-          log.info("Capturing InvoiceDto List --> {} ",list);
+      //For analytics page and when search bar of order page is null and date is given
+      if(date.isBlank()==false && search.isBlank()){
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        Date date2 = dateFormat.parse(date);
+        
+        // Step 2: Set the time zone to UTC
+        
+        System.out.println("Date captured--> "+date2);
+        List<InvoiceDto> list= invoiceService.getInvoiceUserIdAndDate(adminId,date2);
+
+        return new ResponseEntity<>(list,HttpStatus.OK);
+      }
+
+      if(search.length()==0&&  date.isBlank()){
+           List<InvoiceDto> list= invoiceService.findByUserIdAndSearchValue(adminId, search, page, size);
+           return new ResponseEntity<>(list,HttpStatus.OK);
+      }
+      
+      if(search.length()!=0 && date.isBlank()){
+        List<InvoiceDto> list= invoiceService.findByUserIdAndSearchValue(adminId, search, page, size);
+        return new ResponseEntity<>(list,HttpStatus.OK);
+   }
+
+
+
+   if(search.isBlank()==false && date.isBlank()==false){
+     
+     
+     
+     
+     List<InvoiceDto> list1= invoiceService.findByUserIdAndSearchValue(adminId, search, page, size); 
+   
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    Date date2 = dateFormat.parse(date);
+    
+
     
     
+
     
-            return new ResponseEntity<>(list,HttpStatus.OK);
+    System.out.println("Date captured--> "+date2);
+    List<InvoiceDto> list2= invoiceService.getInvoiceUserIdAndDate(adminId,date2);
+
+    List<InvoiceDto> list=new ArrayList<>(); 
+
+    for(int i=0;i<list1.size();i++){
+
+       for(int j=0;j<list2.size();j++){
+           
+         if(list1.get(i).getCustomerName().equals(list2.get(j).getCustomerName())){
+            list.add(list1.get(i));
+         }
+
+        else  if(list1.get(i).getOrderId().equals(list2.get(j).getOrderId())){
+            list.add(list1.get(i));
          }
 
 
-       log.info("InvoiceController::getInvoice caputred userId ,page no , page size --> {} {} {}",adminId,page,size);
-            if( search.isBlank() && date.length()!=0 || date!=null){
 
-               System.out.println("I am Inside Date/...........................................");
-              try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date date2= dateFormat.parse(date);
-                List<InvoiceDto> list=   invoiceService.getInvoiceUserIdAndDate(adminId, date2);
-                return new ResponseEntity<>(list,HttpStatus.OK);
-                
-              } catch (Exception e) {
-                 e.printStackTrace();
-              }
-            }
-
-      // List<InvoiceDto> list=  productService.getInvoice(adminId,customerName ,page,size );
-       List<InvoiceDto> list=  invoiceService.findByUserIdAndSearchValue(adminId, search, page, size);
-         
-      log.info("Capturing InvoiceDto List --> {} ",list);
+         else  if(list1.get(i).getPhoneNo().equals(list2.get(j).getPhoneNo())){
+          list.add(list1.get(i));
+         }
 
 
+       }
 
-        return new ResponseEntity<>(list,HttpStatus.OK);
+    }
+     
+  
+   
+
+         return new ResponseEntity<>(list,HttpStatus.OK);
+   }
+      
+
+        return null;
      }
 
-     //get the invoice by admin id and Date
+   
+    
+
+    //get the invoice by admin id and Date
   //    @GetMapping("/invoice/by-date")
-  //    public ResponseEntity<List<InvoiceDto>> getInvoiceByDate(@RequestParam("adminId") int adminId,  @RequestParam("date") 
+  //    public ResponseEntity<List<InvoiceDto>> getInvoiceByDate(@RequestParam("adminId") int adminId,   
   //    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date){
        
        
@@ -98,4 +148,4 @@ public class InvoiceController {
   // }
 
 
-}
+    }

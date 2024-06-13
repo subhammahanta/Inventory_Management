@@ -22,9 +22,11 @@ public interface SalesRepository extends JpaRepository<Sales, Integer> {
             Pageable pageable);
 
     // Method to get sales details by user ID and date
-    @Query("SELECT s FROM Sales s WHERE s.soldBy = :userId AND DATE(s.saleDate) = :saleDate")
-    List<Sales> findBySoldByAndSaleDate(@Param("userId") int userId,
-            @Param("saleDate") Date saleDate);
+    @Query("SELECT s FROM Sales s WHERE s.soldBy = :userId AND FUNCTION('DATE', s.saleDate) = FUNCTION('DATE', :saleDate)")
+    List<Sales> findBySoldByAndSaleDate(@Param("userId") int userId, @Param("saleDate") Date saleDate);
+    
+    
+    
 
     @Query("SELECT COUNT(s) FROM Sales s")
     long countAllTransactions();

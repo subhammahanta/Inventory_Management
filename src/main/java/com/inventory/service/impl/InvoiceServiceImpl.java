@@ -37,13 +37,14 @@ public class InvoiceServiceImpl implements InvoiceService {
    log.info("ProductServiceImpl::getInvoice--> adminId{} ", userId);
 
         // Total no of sales done by that particular admin
-        int totalSaleCount = salesRepository.countSalesByUserId(userId);
+       // int totalSaleCount = salesRepository.countSalesByUserId(userId);
 
         // Sorting Data according to Date
         Pageable pageable = PageRequest.of(page, size).withSort(Sort.by(Sort.Direction.DESC, "saleDate"));
 
         Page<Sales> pageResult = salesRepository.findBySoldByAndCustomerName(userId, customerName, pageable);
         List<Sales> sales = pageResult.getContent();
+     int totalSaleCount=sales.size();
 
         log.info("Sales Object of a user after fetching from DB  Object-->{} ", sales);
 
@@ -91,12 +92,16 @@ public class InvoiceServiceImpl implements InvoiceService {
     public List<InvoiceDto> getInvoiceUserIdAndDate(int userId, Date saleDate) {
         log.info("ProductServiceImpl::getSalesByUserIdAndDate captured userId {} and Date {} ", userId, saleDate);
 
-        log.info("ProductServiceImpl::getInvoice--> adminId{} saleDate { }", userId,saleDate);
+        log.info("ProductServiceImpl::getInvoice--> adminId{} saleDate {}", userId,saleDate);
 
         // Total no of sales done by that particular admin
         int totalSaleCount = salesRepository.countSalesByUserId(userId);
 
         List<Sales> sales = salesRepository.findBySoldByAndSaleDate(userId, saleDate);
+
+        if(sales.isEmpty() || sales.size()==0){
+            
+        }
 
         log.info("Sales Object of a user after fetching from DB  Object-->{} ", sales);
 
